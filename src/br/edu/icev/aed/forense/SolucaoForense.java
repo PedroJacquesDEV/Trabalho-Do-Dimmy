@@ -10,9 +10,47 @@ public class SolucaoForense implements AnaliseForenseAvancada {
     public SolucaoForense() {
     }
 
+    // Desafio 1
+    //Optei por usar a interface Deque com ArrayDeque, a oracle considera stack legado e a interface Deque moderna
+    //Optei tambem utilizar indexOf e substring, já que o trabalho exige performance
     @Override
     public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException {
-        return new HashSet<>(); // TODO: Implementar
+        Map<String, Deque<String>> sessoesDeUsuario = new HashMap<>();
+        Set<String> sessoesInvalidas = new HashSet<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+            String linha = br.readLine();
+
+            while ((linha = br.readLine()) != null) {
+                int c1 = linha.indexOf(','); if (c1 == -1) continue;
+                int c2 = linha.indexOf(',', c1 + 1); if (c2 == -1) continue;
+                int c3 = linha.indexOf(',', c2 + 1); if (c3 == -1) continue;
+                int c4 = linha.indexOf(',', c3 + 1);
+                int fimAction = (c4 == -1) ? linha.length() : c4;
+
+                String userId = linha.substring(c1 + 1, c2);
+                String sessionId = linha.substring(c2 + 1, c3);
+                String action = linha.substring(c3 + 1, fimAction);
+
+                Deque<String> stack = sessoesDeUsuario.computeIfAbsent(userId, k -> new ArrayDeque<>());
+
+                if ("LOGIN".equals(action)) {
+                    if (!stack.isEmpty()) sessoesInvalidas.add(sessionId);
+                    stack.push(sessionId);
+                } else if ("LOGOUT".equals(action)) {
+                    if (stack.isEmpty() || !stack.peek().equals(sessionId)) {
+                        sessoesInvalidas.add(sessionId);
+                    } else {
+                        stack.pop();
+                    }
+                }
+            }
+        }
+
+        for (Deque<String> stack : sessoesDeUsuario.values()) {
+            while (!stack.isEmpty()) sessoesInvalidas.add(stack.pop());
+        }
+        return sessoesInvalidas;
     }
 
     @Override
