@@ -126,10 +126,68 @@ public class SolucaoForense implements AnaliseForenseAvancada {
         }
         return resultado;
     }
-
+    // Desafio 4
+    //Implementei a Pilha Monotônica padrão
+    //Sigo utilizando Indexof e substring para ter uma performance melhor.
     @Override
     public Map<Long, Long> encontrarPicosTransferencia(String arquivo) throws IOException {
-        return new HashMap<>(); // TODO: Implementar
+        List<long[]> eventos = new ArrayList<>(10000);
+
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+            String linha = br.readLine();
+
+            while ((linha = br.readLine()) != null) {
+                int c1 = linha.indexOf(',');
+                int c6 = -1;
+                int count = 0;
+
+                for (int i = 0; i < linha.length(); i++) {
+                    if (linha.charAt(i) == ',') {
+                        count++;
+                        if (count == 6) {
+                            c6 = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (c1 != -1 && c6 != -1) {
+                    try {
+                        int nextC = linha.indexOf(',', c6 + 1);
+                        int end = (nextC == -1) ? linha.length() : nextC;
+                        String bStr = linha.substring(c6 + 1, end).trim();
+
+                        if (!bStr.isEmpty()) {
+                            long bytes = Long.parseLong(bStr);
+                            if (bytes > 0) {
+                                long ts = Long.parseLong(linha.substring(0, c1));
+                                eventos.add(new long[]{ts, bytes});
+                            }
+                        }
+                    } catch (Exception e) {}
+                }
+            }
+        }
+
+        Stack<Integer> stack = new Stack<>();
+        Map<Long, Long> resultado = new HashMap<>();
+
+        for (int i = eventos.size() - 1; i >= 0; i--) {
+            long[] atual = eventos.get(i);
+            while (!stack.isEmpty()) {
+                long[] topo = eventos.get(stack.peek());
+                if (topo[1] <= atual[1]) {
+                    stack.pop();
+                } else {
+                    break;
+                }
+            }
+            if (!stack.isEmpty()) {
+                resultado.put(atual[0], eventos.get(stack.peek())[0]);
+            }
+            stack.push(i);
+        }
+        return resultado;
     }
 
     @Override
