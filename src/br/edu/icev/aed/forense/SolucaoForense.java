@@ -127,7 +127,7 @@ public class SolucaoForense implements AnaliseForenseAvancada {
         return resultado;
     }
     // Desafio 4
-    //Implementei a Pilha Monotônica padrão
+    //Implementei a Pilha Monotônica padrão.
     //Sigo utilizando Indexof e substring para ter uma performance melhor.
     @Override
     public Map<Long, Long> encontrarPicosTransferencia(String arquivo) throws IOException {
