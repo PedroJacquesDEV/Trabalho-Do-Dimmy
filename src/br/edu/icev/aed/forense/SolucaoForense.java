@@ -190,8 +190,80 @@ public class SolucaoForense implements AnaliseForenseAvancada {
         return resultado;
     }
 
+
+    // Desafio 5
+    // Implementei a busca em largura(BFS)
+    // Sigo utilizando Indexof e substring para ter uma performance melhor.
     @Override
     public Optional<List<String>> rastrearContaminacao(String arquivo, String org, String dest) throws IOException {
-        return Optional.empty(); // TODO: Implementar
+        Map<String, List<String>> recursosPorSessao = new HashMap<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+            String linha = br.readLine();
+            while ((linha = br.readLine()) != null) {
+
+                int c1 = linha.indexOf(','); if (c1 == -1) continue;
+                int c2 = linha.indexOf(',', c1 + 1); if (c2 == -1) continue;
+                int c3 = linha.indexOf(',', c2 + 1); if (c3 == -1) continue;
+                int c4 = linha.indexOf(',', c3 + 1); if (c4 == -1) continue;
+                int c5 = linha.indexOf(',', c4 + 1);
+                int fimRes = (c5 == -1) ? linha.length() : c5;
+
+                String sId = linha.substring(c2 + 1, c3);
+                String res = linha.substring(c4 + 1, fimRes);
+
+                recursosPorSessao.computeIfAbsent(sId, k -> new ArrayList<>()).add(res);
+            }
+        }
+
+        Map<String, Set<String>> grafo = new HashMap<>();
+        for (List<String> acessos : recursosPorSessao.values()) {
+            for (int i = 0; i < acessos.size() - 1; i++) {
+                String r1 = acessos.get(i);
+                String r2 = acessos.get(i + 1);
+                if (!r1.equals(r2)) {
+                    grafo.computeIfAbsent(r1, k -> new HashSet<>()).add(r2);
+                }
+            }
+        }
+
+        if (!grafo.containsKey(org)) return Optional.empty();
+        if (org.equals(dest)) return Optional.of(Collections.singletonList(org));
+
+        Queue<String> fila = new LinkedList<>();
+        Set<String> visitados = new HashSet<>();
+        Map<String, String> antecessor = new HashMap<>();
+
+        fila.add(org);
+        visitados.add(org);
+        boolean achou = false;
+
+        while (!fila.isEmpty()) {
+            String atual = fila.poll();
+            if (atual.equals(dest)) {
+                achou = true;
+                break;
+            }
+            if (grafo.containsKey(atual)) {
+                for (String vizinho : grafo.get(atual)) {
+                    if (!visitados.contains(vizinho)) {
+                        visitados.add(vizinho);
+                        fila.add(vizinho);
+                        antecessor.put(vizinho, atual);
+                    }
+                }
+            }
+        }
+
+        if (!achou) return Optional.empty();
+
+        List<String> caminho = new ArrayList<>();
+        String passo = dest;
+        while (passo != null) {
+            caminho.add(passo);
+            passo = antecessor.get(passo);
+        }
+        Collections.reverse(caminho);
+        return Optional.of(caminho);
     }
 }
