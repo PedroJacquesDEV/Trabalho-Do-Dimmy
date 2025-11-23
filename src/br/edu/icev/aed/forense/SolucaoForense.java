@@ -81,10 +81,50 @@ public class SolucaoForense implements AnaliseForenseAvancada {
         }
         return new ArrayList<>(filaAcoes);
     }
-
+    // Desafio 4
+    //Optei por usar Heap, ela semi ordena os elementos automaticamente, já uma lista comum iria precisar ordenar tudo no final
+    //Implementei a pq com um comparador reverso fazendo ele atuar como um max-heap e deixando a maior severidade no topo
     @Override
     public List<Alerta> priorizarAlertas(String arquivo, int n) throws IOException {
-        return new ArrayList<>(); // TODO: Implementar
+        PriorityQueue<Alerta> pq = new PriorityQueue<>((a1, a2) -> Integer.compare(a2.getSeverityLevel(), a1.getSeverityLevel()));
+
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+            String linha = br.readLine();
+
+            while ((linha = br.readLine()) != null) {
+                int c1 = linha.indexOf(','); if (c1 == -1) continue;
+                int c2 = linha.indexOf(',', c1 + 1); if (c2 == -1) continue;
+                int c3 = linha.indexOf(',', c2 + 1); if (c3 == -1) continue;
+                int c4 = linha.indexOf(',', c3 + 1); if (c4 == -1) continue;
+                int c5 = linha.indexOf(',', c4 + 1); if (c5 == -1) continue;
+                int c6 = linha.indexOf(',', c5 + 1);
+
+                long timestamp = Long.parseLong(linha.substring(0, c1));
+                String userId = linha.substring(c1 + 1, c2);
+                String sessionId = linha.substring(c2 + 1, c3);
+                String action = linha.substring(c3 + 1, c4);
+                String resource = linha.substring(c4 + 1, c5);
+                int severity = Integer.parseInt(linha.substring(c5 + 1, (c6 == -1 ? linha.length() : c6)));
+
+                long bytes = 0;
+                if (c6 != -1 && c6 < linha.length() - 1) {
+                    try {
+                        String bytesStr = linha.substring(c6 + 1).trim();
+                        if (!bytesStr.isEmpty()) {
+                            bytes = Long.parseLong(bytesStr);
+                        }
+                    } catch (Exception e) { bytes = 0; }
+                }
+
+                pq.add(new Alerta(timestamp, userId, sessionId, action, resource, severity, bytes));
+            }
+        }
+
+        List<Alerta> resultado = new ArrayList<>();
+        for (int i = 0; i < n && !pq.isEmpty(); i++) {
+            resultado.add(pq.poll());
+        }
+        return resultado;
     }
 
     @Override
