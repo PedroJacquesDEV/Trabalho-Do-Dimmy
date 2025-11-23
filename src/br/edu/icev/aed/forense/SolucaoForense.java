@@ -81,7 +81,7 @@ public class SolucaoForense implements AnaliseForenseAvancada {
         }
         return new ArrayList<>(filaAcoes);
     }
-    // Desafio 4
+    // Desafio 3
     //Optei por usar Heap, ela semi ordena os elementos automaticamente, já uma lista comum iria precisar ordenar tudo no final
     //Implementei a pq com um comparador reverso fazendo ele atuar como um max-heap e deixando a maior severidade no topo
     @Override
