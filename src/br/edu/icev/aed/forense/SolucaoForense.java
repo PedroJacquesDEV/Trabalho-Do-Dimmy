@@ -53,9 +53,33 @@ public class SolucaoForense implements AnaliseForenseAvancada {
         return sessoesInvalidas;
     }
 
+    // Desafio 2
+    //No pdf fala que o timestamp vem em ordem crescente, então entendi que não vou precisar implementar sort
+    //Sigo utilizando Indexof e substring para ter uma performance melhor.
     @Override
-    public List<String> reconstruirLinhaTempo(String arquivo, String sessionId) throws IOException {
-        return new ArrayList<>(); // TODO: Implementar
+    public List<String> reconstruirLinhaTempo(String arquivo, String sessionIdAlvo) throws IOException {
+        Queue<String> filaAcoes = new LinkedList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+            String linha = br.readLine();
+
+            while ((linha = br.readLine()) != null) {
+                int c1 = linha.indexOf(','); if (c1 == -1) continue;
+                int c2 = linha.indexOf(',', c1 + 1); if (c2 == -1) continue;
+                int c3 = linha.indexOf(',', c2 + 1); if (c3 == -1) continue;
+
+                if ((c3 - (c2 + 1)) == sessionIdAlvo.length()) {
+                    String sIdAtual = linha.substring(c2 + 1, c3);
+                    if (sIdAtual.equals(sessionIdAlvo)) {
+                        int c4 = linha.indexOf(',', c3 + 1);
+                        int fimAction = (c4 == -1) ? linha.length() : c4;
+                        String action = linha.substring(c3 + 1, fimAction);
+                        filaAcoes.add(action);
+                    }
+                }
+            }
+        }
+        return new ArrayList<>(filaAcoes);
     }
 
     @Override
